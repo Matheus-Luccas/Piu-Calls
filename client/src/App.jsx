@@ -63,10 +63,14 @@ export default function App() {
   }, [activeServerId]);
 
   async function handleCreateServer(name) {
-    const data = await api.createServer(name);
-    const list = await api.listServers();
-    setServers(list.servers);
-    setActiveServerId(data.server.id);
+    try {
+      const data = await api.createServer(name);
+      const list = await api.listServers();
+      setServers(list.servers);
+      setActiveServerId(data.server.id);
+    } catch (err) {
+      alert('Não foi possível criar o servidor: ' + err.message);
+    }
   }
 
   async function handleJoinServer(inviteCode) {
