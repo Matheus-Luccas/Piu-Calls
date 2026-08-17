@@ -1,0 +1,61 @@
+name: Build desktop app (Windows / Mac / Linux)
+
+# Como usar (sem precisar saber programar):
+# 1. Suba este projeto para um repositório no GitHub (github.com).
+# 2. Na página do repositório, clique na aba "Actions".
+# 3. Clique em "Build desktop app (Windows / Mac / Linux)" na lista à esquerda.
+# 4. Clique no botão "Run workflow" (canto direito) e depois em "Run workflow" de novo.
+# 5. Espere uns minutos até os três "jobs" ficarem verdes (✔).
+# 6. Clique em cada job finalizado -> role até "Artifacts" no final da página -> baixe
+#    o instalador (squad-windows = .exe, squad-mac = .dmg, squad-linux = .AppImage).
+
+on:
+  workflow_dispatch: {}
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            name: squad-windows
+            script: dist:win
+            artifact_glob: desktop/release/*.exe
+          - os: macos-latest
+            name: squad-mac
+            script: dist:mac
+            artifact_glob: desktop/release/*.dmg
+          - os: ubuntu-latest
+            name: squad-linux
+            script: dist:linux
+            artifact_glob: desktop/release/*.AppImage
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Baixar código-fonte
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Instalar dependências do app desktop
+        working-directory: desktop
+        run: npm install
+
+      - name: Gerar instalador
+        working-directory: desktop
+        run: npm run ${{ matrix.script }}
+
+      - name: Publicar instalador como artefato
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.name }}
+          path: ${{ matrix.artifact_glob }}
+          if-no-files-found: error
