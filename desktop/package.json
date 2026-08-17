@@ -1,0 +1,55 @@
+{
+  "name": "squad-desktop",
+  "version": "1.0.0",
+  "description": "App desktop do Squad (mini-Discord) — Electron",
+  "main": "main.js",
+  "private": true,
+  "author": "Squad",
+  "scripts": {
+    "start": "electron .",
+    "build:renderer": "cd ../client && npm install && npm run build",
+    "prepare:renderer": "node scripts/copy-renderer.js",
+    "predist": "npm run build:renderer && npm run prepare:renderer",
+    "dist": "electron-builder",
+    "dist:win": "npm run predist && electron-builder --win",
+    "dist:mac": "npm run predist && electron-builder --mac",
+    "dist:linux": "npm run predist && electron-builder --linux",
+    "dist:all": "npm run predist && electron-builder -mwl"
+  },
+  "devDependencies": {
+    "electron": "latest",
+    "electron-builder": "latest"
+  },
+  "build": {
+    "appId": "com.squad.app",
+    "productName": "Squad",
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "renderer/**/*"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "build/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true
+    },
+    "mac": {
+      "target": "dmg",
+      "icon": "build/icon.png",
+      "category": "public.app-category.social-networking"
+    },
+    "linux": {
+      "target": "AppImage",
+      "icon": "build/icon.png",
+      "category": "Network"
+    }
+  }
+}

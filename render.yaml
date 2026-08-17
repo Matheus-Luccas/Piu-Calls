@@ -1,0 +1,17 @@
+# Blueprint do Render.com — deixa o deploy praticamente em um clique.
+# No painel do Render: "New +" -> "Blueprint" -> selecione este repositório ->
+# o Render lê este arquivo sozinho e já propõe o serviço configurado certinho,
+# incluindo um SESSION_SECRET gerado automaticamente.
+services:
+  - type: web
+    name: squad-servidor
+    runtime: node
+    plan: free
+    rootDir: server
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: SESSION_COOKIE_SECURE
+        value: true
