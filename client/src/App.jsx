@@ -160,7 +160,12 @@ export default function App() {
               <ChatPanel socket={socket} channel={activeChannel} currentUser={user} />
             )}
             {activeChannel?.type === 'voice' && (
-              <VoicePanel socket={socket} channel={activeChannel} currentUser={user} />
+              <VoicePanel
+                socket={socket}
+                channel={activeChannel}
+                currentUser={user}
+                onLeaveCall={() => setActiveChannel(null)}
+              />
             )}
             {!activeChannel && <div className="empty-state">Selecione um canal para começar.</div>}
           </div>
