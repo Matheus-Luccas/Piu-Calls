@@ -16,6 +16,9 @@
     "dist:linux": "npm run predist && electron-builder --linux",
     "dist:all": "npm run predist && electron-builder -mwl"
   },
+  "dependencies": {
+    "electron-updater": "^6"
+  },
   "devDependencies": {
     "electron": "latest",
     "electron-builder": "latest"
@@ -32,6 +35,11 @@
       "preload.js",
       "renderer/**/*"
     ],
+    "publish": {
+      "provider": "github",
+      "owner": "Matheus-Luccas",
+      "repo": "Piu-Calls"
+    },
     "win": {
       "target": "nsis",
       "icon": "build/icon.png",
