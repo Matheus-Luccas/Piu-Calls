@@ -1,4 +1,5 @@
 const express = require('express');
+const path = require('path');
 const http = require('http');
 const cors = require('cors');
 const session = require('express-session');
@@ -65,6 +66,13 @@ app.use('/api/servers', serverRoutes);
 app.use('/api/channels', channelRoutes);
 
 app.get('/api/health', (req, res) => res.json({ ok: true }));
+
+// Página pública de download do app (instaladores Windows/Mac/Linux) — link
+// fixo que pode ser compartilhado com qualquer pessoa, sem precisar mandar
+// arquivo manualmente a cada nova versão. Os botões apontam pra Release mais
+// recente do GitHub, publicada automaticamente pelo GitHub Actions.
+app.use(express.static(path.join(__dirname, 'public')));
+app.get('/download', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 
 const io = new Server(httpServer, {
   cors: corsOptions,
