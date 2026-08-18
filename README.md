@@ -19,6 +19,13 @@ com múltiplos servidores e canais, parecido com o Discord. Tem duas partes:
 - **Compartilhamento de tela**: compartilhe sua tela com quem estiver na chamada.
 - **App desktop instalável** (Windows/Mac/Linux), com tela para configurar/trocar
   o endereço do servidor.
+- **Atualização automática** (Windows e Linux): depois de instalado uma vez, o
+  app confere sozinho se saiu uma versão nova e se atualiza — não precisa
+  desinstalar/instalar de novo a cada mudança. Também dá pra checar na mão
+  pelo botão "Checar atualizações" no canto da tela. No Mac, como o app não é
+  assinado digitalmente (isso custa uma assinatura anual da Apple), a
+  atualização automática não funciona de forma confiável — quem usa Mac ainda
+  precisa baixar a versão nova pela página `/download` de vez em quando.
 - Login/cadastro simples com usuário e senha. Tema escuro, visual inspirado no Discord.
 
 ## Passo a passo recomendado
@@ -36,19 +43,28 @@ com múltiplos servidores e canais, parecido com o Discord. Tem duas partes:
 ## Como gerar os instaladores do app desktop (Windows .exe / Mac .dmg / Linux)
 
 Isso já acontece automaticamente: toda vez que o workflow do GitHub Actions
-roda com sucesso, ele publica os três instaladores numa **Release pública**
-chamada `latest` no seu repositório, e a página `/download` do servidor (veja
-acima) sempre puxa os arquivos dessa release — então você só precisa rodar o
-workflow uma vez por atualização, e ninguém precisa baixar/reenviar nada à mão.
+roda com sucesso, ele mesmo publica os três instaladores como uma nova
+**Release** no seu repositório (a versão sobe sozinha a cada execução, pra o
+app saber que existe algo mais novo) — e tanto a página `/download` do
+servidor quanto quem já tem o app instalado (Windows/Linux) enxergam essa
+versão nova automaticamente. Você só precisa rodar o workflow uma vez por
+atualização de código; ninguém precisa baixar/reenviar nada à mão depois disso.
 
-Pra gerar (ou atualizar) os instaladores:
+Pra gerar (ou publicar) uma atualização:
 
 1. Suba esta pasta para um repositório no GitHub.
 2. Na aba **Actions** do repositório, escolha o workflow **"Build desktop app
    (Windows / Mac / Linux)"** e clique em **Run workflow**.
-3. Espere terminar (uns 5-10 minutos). Pronto — a Release `latest` (aba
-   **Releases** do repositório) e a página `/download` do servidor já mostram
-   os instaladores novos, sem mais nenhum passo manual.
+3. Espere terminar (uns 5-10 minutos). Pronto — a aba **Releases** do
+   repositório e a página `/download` do servidor já mostram os instaladores
+   novos, e quem já tem o app aberto no Windows/Linux recebe a atualização
+   sozinho na próxima vez que abrir (ou na hora, se clicar em "Checar
+   atualizações").
+
+> Importante: quem já tinha instalado uma versão **anterior a essa função de
+> auto-atualização** (antes de você aplicar essas mudanças) precisa baixar e
+> instalar manualmente **uma última vez** pela página `/download`. A partir
+> daí, as próximas atualizações já acontecem sozinhas.
 
 (Se preferir, ainda dá pra baixar os arquivos direto da execução do workflow,
 na seção **Artifacts** — mas isso exige estar logado no GitHub, então não é
