@@ -750,3 +750,58 @@ input {
 .ctrl-btn.ctrl-danger:hover {
   background: var(--danger);
 }
+
+/* ---------- Atualização automática do app desktop ---------- */
+.update-check-btn,
+.update-banner {
+  position: fixed;
+  top: 12px;
+  right: 16px;
+  z-index: 1000;
+}
+
+.update-check-btn {
+  background: var(--bg-light);
+  color: var(--text-normal);
+  border: 1px solid var(--bg-lighter);
+  border-radius: 20px;
+  padding: 7px 14px;
+  font-size: 12.5px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.15s;
+}
+
+.update-check-btn:hover {
+  background: var(--bg-lighter);
+}
+
+.update-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--brand);
+  color: white;
+  border-radius: 20px;
+  padding: 8px 8px 8px 16px;
+  font-size: 12.5px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+.update-banner-quiet {
+  background: var(--bg-light);
+  color: var(--text-normal);
+  border: 1px solid var(--bg-lighter);
+}
+
+.update-banner-ready {
+  background: var(--success);
+}
+
+.update-banner-btn {
+  padding: 6px 12px;
+  border-radius: 14px;
+  font-size: 12px;
+  white-space: nowrap;
+}
