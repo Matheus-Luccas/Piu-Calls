@@ -72,12 +72,23 @@ function setupAutoUpdater() {
 }
 
 app.whenReady().then(() => {
-  // Libera automaticamente pedidos de câmera/microfone/compartilhamento de tela
-  // feitos pela página (o sistema operacional ainda pede a permissão de
-  // câmera/microfone do app na primeira vez, isso é normal).
+  // Libera automaticamente pedidos de câmera/microfone/compartilhamento de
+  // tela/tela cheia feitos pela página (o sistema operacional ainda pede a
+  // permissão de câmera/microfone do app na primeira vez, isso é normal).
+  //
+  // "fullscreen" precisa estar nas DUAS listas abaixo (check + request) —
+  // sem isso, o botão de expandir vídeo/tela fica sem fazer nada: o Electron
+  // primeiro faz uma checagem síncrona (setPermissionCheckHandler) antes de
+  // sequer chamar o handler de pedido, e sem essa permissão liberada o
+  // requestFullscreen() do navegador nem chega a rejeitar — ele trava pra
+  // sempre (bug conhecido do Electron, sem previsão de conserto:
+  // https://github.com/electron/electron/issues/37719).
+  const ALLOWED_PERMISSIONS = ['media', 'mediaKeySystem', 'display-capture', 'fullscreen'];
+
+  session.defaultSession.setPermissionCheckHandler((webContents, permission) => ALLOWED_PERMISSIONS.includes(permission));
+
   session.defaultSession.setPermissionRequestHandler((webContents, permission, callback) => {
-    const allowed = ['media', 'mediaKeySystem', 'display-capture'];
-    callback(allowed.includes(permission));
+    callback(ALLOWED_PERMISSIONS.includes(permission));
   });
 
   // Compartilhamento de tela: nesta versão inicial compartilha a tela inteira

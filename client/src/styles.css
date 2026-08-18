@@ -751,6 +751,51 @@ input {
   background: var(--danger);
 }
 
+/* ---------- Barra de "ainda conectado na chamada" ---------- */
+.voice-call-bar {
+  position: fixed;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 900;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg-mid);
+  border: 1px solid var(--bg-lighter);
+  border-radius: 26px;
+  padding: 6px 8px 6px 16px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+.voice-call-bar-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  color: var(--text-normal);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.voice-call-bar-info:hover {
+  color: var(--text-bright);
+}
+
+.voice-call-bar-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--success);
+  flex-shrink: 0;
+}
+
+.ctrl-btn.ctrl-btn-sm {
+  width: 34px;
+  height: 34px;
+  font-size: 14px;
+}
+
 /* ---------- Atualização automática do app desktop ---------- */
 .update-check-btn,
 .update-banner {

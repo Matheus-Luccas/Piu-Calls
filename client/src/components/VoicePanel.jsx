@@ -1,23 +1,27 @@
 import { useEffect, useState } from 'react';
-import { useVoiceRoom } from '../voice/useVoiceRoom';
 import VideoTile from './VideoTile';
 import DeviceSettings from './DeviceSettings';
 
-export default function VoicePanel({ socket, channel, currentUser, onLeaveCall }) {
+// Componente "burro": só mostra o estado da chamada, quem realmente controla
+// a conexão de voz é o hook useVoiceRoom, chamado lá em cima no App.jsx (pra
+// sobreviver mesmo quando a pessoa sai desse canal pra ver outra coisa).
+export default function VoicePanel({
+  channel,
+  currentUser,
+  onLeaveCall,
+  peers,
+  localStream,
+  localStreamVersion,
+  micOn,
+  videoMode,
+  joined,
+  error,
+  setError,
+  toggleMic,
+  toggleCamera,
+  toggleScreenShare,
+}) {
   const [showDeviceSettings, setShowDeviceSettings] = useState(false);
-  const {
-    peers,
-    localStream,
-    localStreamVersion,
-    micOn,
-    videoMode,
-    joined,
-    error,
-    setError,
-    toggleMic,
-    toggleCamera,
-    toggleScreenShare,
-  } = useVoiceRoom({ socket, channel, currentUser });
 
   useEffect(() => {
     if (!error) return;

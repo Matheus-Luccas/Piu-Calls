@@ -1,13 +1,15 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { api } from './api';
 import { connectSocket, disconnectSocket } from './socket';
 import { hasServerUrl, getServerUrl } from './config';
+import { useVoiceRoom } from './voice/useVoiceRoom';
 import Auth from './pages/Auth';
 import ServerSetup from './pages/ServerSetup';
 import ServerSidebar from './components/ServerSidebar';
 import ChannelSidebar from './components/ChannelSidebar';
 import ChatPanel from './components/ChatPanel';
 import VoicePanel from './components/VoicePanel';
+import VoiceCallBar from './components/VoiceCallBar';
 import UpdateBanner from './components/UpdateBanner';
 
 export default function App() {
@@ -21,7 +23,24 @@ export default function App() {
   const [servers, setServers] = useState([]);
   const [activeServerId, setActiveServerId] = useState(null);
   const [serverDetail, setServerDetail] = useState(null); // { server, channels, members }
-  const [activeChannel, setActiveChannel] = useState(null);
+  const [activeChannel, setActiveChannel] = useState(null); // canal sendo VISTO no momento
+
+  // Canal de voz ao qual a pessoa está realmente CONECTADA — separado de
+  // activeChannel de propósito: navegar até um canal de texto pra mandar uma
+  // mensagem não pode derrubar a chamada em andamento. voiceServerId guarda
+  // de qual servidor é essa chamada, pra dar pra "pular" de volta pra ela
+  // mesmo depois de trocar de servidor.
+  const [voiceChannel, setVoiceChannel] = useState(null);
+  const [voiceServerId, setVoiceServerId] = useState(null);
+  const voiceChannelRef = useRef(null);
+  useEffect(() => {
+    voiceChannelRef.current = voiceChannel;
+  }, [voiceChannel]);
+
+  // O hook fica aqui em cima (não dentro de VoicePanel) exatamente para
+  // sobreviver a trocas de activeChannel — ele só reage a mudanças em
+  // voiceChannel.
+  const voice = useVoiceRoom({ socket, channel: voiceChannel, currentUser: user });
 
   // Verifica sessão existente ao carregar (só depois que o servidor está configurado)
   useEffect(() => {
@@ -58,6 +77,11 @@ export default function App() {
       setServerDetail(data);
       setActiveChannel((prev) => {
         if (prev && data.channels.some((c) => c.id === prev.id)) return prev;
+        // Se estamos aqui porque a pessoa clicou em "voltar pra chamada" e
+        // essa chamada é de outro servidor, troca pro canal de voz da
+        // chamada assim que os canais desse servidor chegarem.
+        const vc = voiceChannelRef.current;
+        if (vc && data.channels.some((c) => c.id === vc.id)) return vc;
         return data.channels.find((c) => c.type === 'text') || data.channels[0] || null;
       });
     });
@@ -91,6 +115,35 @@ export default function App() {
     setServerDetail(data);
   }
 
+  // Selecionar um canal de TEXTO só troca o que está sendo visto. Selecionar
+  // um canal de VOZ também (re)conecta a chamada de voz — é assim que uma
+  // pessoa entra/troca de call, mas nunca acontece sozinho ao ler o chat.
+  function handleSelectChannel(channel) {
+    setActiveChannel(channel);
+    if (channel.type === 'voice') {
+      setVoiceChannel(channel);
+      setVoiceServerId(activeServerId);
+    }
+  }
+
+  function handleLeaveCall() {
+    setActiveChannel((prev) => (voiceChannel && prev?.id === voiceChannel.id ? null : prev));
+    setVoiceChannel(null);
+    setVoiceServerId(null);
+  }
+
+  function handleJumpToCall() {
+    if (!voiceChannel) return;
+    if (voiceServerId && voiceServerId !== activeServerId) {
+      // Troca de servidor primeiro; o efeito de "carrega detalhe do servidor
+      // ativo" acima cuida de selecionar o canal de voz assim que os canais
+      // desse servidor chegarem.
+      setActiveServerId(voiceServerId);
+    } else {
+      setActiveChannel(voiceChannel);
+    }
+  }
+
   function resetAppState() {
     disconnectSocket();
     setUser(null);
@@ -99,6 +152,8 @@ export default function App() {
     setServerDetail(null);
     setActiveServerId(null);
     setActiveChannel(null);
+    setVoiceChannel(null);
+    setVoiceServerId(null);
   }
 
   async function handleLogout() {
@@ -180,7 +235,7 @@ export default function App() {
             channels={serverDetail.channels}
             members={serverDetail.members}
             activeChannel={activeChannel}
-            onSelectChannel={setActiveChannel}
+            onSelectChannel={handleSelectChannel}
             onCreateChannel={handleCreateChannel}
             currentUser={user}
             onLogout={handleLogout}
@@ -191,15 +246,19 @@ export default function App() {
               <ChatPanel socket={socket} channel={activeChannel} currentUser={user} />
             )}
             {activeChannel?.type === 'voice' && (
-              <VoicePanel
-                socket={socket}
-                channel={activeChannel}
-                currentUser={user}
-                onLeaveCall={() => setActiveChannel(null)}
-              />
+              <VoicePanel channel={activeChannel} currentUser={user} onLeaveCall={handleLeaveCall} {...voice} />
             )}
             {!activeChannel && <div className="empty-state">Selecione um canal para começar.</div>}
           </div>
+          {voiceChannel && activeChannel?.id !== voiceChannel.id && (
+            <VoiceCallBar
+              channel={voiceChannel}
+              micOn={voice.micOn}
+              toggleMic={voice.toggleMic}
+              onJump={handleJumpToCall}
+              onLeave={handleLeaveCall}
+            />
+          )}
         </>
       ) : (
         <div className="empty-state">
