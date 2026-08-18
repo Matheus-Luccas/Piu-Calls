@@ -3,7 +3,7 @@ import { useVoiceRoom } from '../voice/useVoiceRoom';
 import VideoTile from './VideoTile';
 import DeviceSettings from './DeviceSettings';
 
-export default function VoicePanel({ socket, channel, currentUser }) {
+export default function VoicePanel({ socket, channel, currentUser, onLeaveCall }) {
   const [showDeviceSettings, setShowDeviceSettings] = useState(false);
   const {
     peers,
@@ -81,6 +81,11 @@ export default function VoicePanel({ socket, channel, currentUser }) {
         <button className="ctrl-btn" onClick={() => setShowDeviceSettings(true)} title="Dispositivos de áudio e vídeo">
           ⚙
         </button>
+        {onLeaveCall && (
+          <button className="ctrl-btn ctrl-danger" onClick={onLeaveCall} title="Desconectar da chamada">
+            📵
+          </button>
+        )}
       </div>
 
       {showDeviceSettings && <DeviceSettings onClose={() => setShowDeviceSettings(false)} />}
