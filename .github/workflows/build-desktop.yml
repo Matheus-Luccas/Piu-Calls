@@ -71,6 +71,17 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Garantir que esta versão fique marcada como "Latest" no GitHub
+        shell: bash
+        # Isso existe por causa de uma release antiga (de antes desse workflow
+        # publicar direto pelo electron-builder) que tinha ficado "presa" como
+        # Latest — fazendo a página /download e o auto-update continuarem
+        # apontando pros arquivos velhos mesmo depois de builds novas. Forçar
+        # isso aqui toda vez evita que aconteça de novo no futuro.
+        run: gh release edit "v1.0.${{ github.run_number }}" --latest --repo "${{ github.repository }}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Também deixar disponível como artefato da execução (opcional)
         uses: actions/upload-artifact@v4
         with:
