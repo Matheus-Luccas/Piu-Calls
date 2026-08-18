@@ -746,3 +746,7 @@ input {
 .ctrl-btn.ctrl-off {
   background: var(--danger);
 }
+
+.ctrl-btn.ctrl-danger:hover {
+  background: var(--danger);
+}
