@@ -8,6 +8,7 @@ import ServerSidebar from './components/ServerSidebar';
 import ChannelSidebar from './components/ChannelSidebar';
 import ChatPanel from './components/ChatPanel';
 import VoicePanel from './components/VoicePanel';
+import UpdateBanner from './components/UpdateBanner';
 
 export default function App() {
   const [serverConfigured, setServerConfigured] = useState(hasServerUrl());
@@ -112,28 +113,58 @@ export default function App() {
   }
 
   if (!serverConfigured) {
-    return <ServerSetup onSaved={() => setServerConfigured(true)} />;
+    return (
+      <>
+        <UpdateBanner />
+        <ServerSetup onSaved={() => setServerConfigured(true)} />
+      </>
+    );
   }
 
   if (showServerSettings) {
     return (
-      <ServerSetup
-        title="Trocar servidor"
-        subtitle="Isso vai te desconectar do servidor atual."
-        initialValue={getServerUrl()}
-        allowCancel
-        onCancel={() => setShowServerSettings(false)}
-        onSaved={handleServerUrlChanged}
-      />
+      <>
+        <UpdateBanner />
+        <ServerSetup
+          title="Trocar servidor"
+          subtitle="Isso vai te desconectar do servidor atual."
+          initialValue={getServerUrl()}
+          allowCancel
+          onCancel={() => setShowServerSettings(false)}
+          onSaved={handleServerUrlChanged}
+        />
+      </>
     );
   }
 
-  if (checkingSession) return <div className="loading-screen">Carregando...</div>;
-  if (!user) return <Auth onAuthenticated={setUser} onChangeServer={() => setShowServerSettings(true)} />;
-  if (!socket) return <div className="loading-screen">Conectando...</div>;
+  if (checkingSession) {
+    return (
+      <>
+        <UpdateBanner />
+        <div className="loading-screen">Carregando...</div>
+      </>
+    );
+  }
+  if (!user) {
+    return (
+      <>
+        <UpdateBanner />
+        <Auth onAuthenticated={setUser} onChangeServer={() => setShowServerSettings(true)} />
+      </>
+    );
+  }
+  if (!socket) {
+    return (
+      <>
+        <UpdateBanner />
+        <div className="loading-screen">Conectando...</div>
+      </>
+    );
+  }
 
   return (
     <div className="app-shell">
+      <UpdateBanner />
       <ServerSidebar
         servers={servers}
         activeServerId={activeServerId}
