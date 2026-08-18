@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { getDevicePrefs } from '../config';
+import { api } from '../api';
 
 // Tenta abrir o dispositivo escolhido nas configurações; se ele não existir mais
 // (foi desconectado, por exemplo), cai de volta pro padrão do sistema em vez de falhar.
@@ -17,8 +18,24 @@ async function getUserMediaWithFallback(constraintKey, deviceId) {
 // STUN público do Google — suficiente para testes na mesma rede / redes "abertas".
 // Para chamadas confiáveis entre redes diferentes (NAT simétrico, 4G etc.) em produção,
 // normalmente é necessário também um servidor TURN (ex.: coturn próprio ou um serviço
-// como metered.ca / Twilio). Veja o README.
-const ICE_SERVERS = [{ urls: 'stun:stun.l.google.com:19302' }];
+// como metered.ca / Twilio). Veja o README. Esse valor é só o "fallback" inicial —
+// assim que o app conecta, ele busca a lista real (que pode incluir TURN, se
+// configurado no servidor) em getIceServers().
+const DEFAULT_ICE_SERVERS = [{ urls: 'stun:stun.l.google.com:19302' }];
+
+// Guarda em cache (por sessão do app) a lista vinda do servidor, pra não
+// precisar buscar de novo a cada pessoa que entra/sai da chamada.
+let iceServersCache = null;
+async function getIceServers() {
+  if (iceServersCache) return iceServersCache;
+  try {
+    const { iceServers } = await api.iceServers();
+    iceServersCache = iceServers?.length ? iceServers : DEFAULT_ICE_SERVERS;
+  } catch {
+    iceServersCache = DEFAULT_ICE_SERVERS;
+  }
+  return iceServersCache;
+}
 
 // Hook que gerencia uma sala de voz/vídeo em grupo via WebRTC "mesh" (cada participante
 // conecta diretamente com todos os outros). Funciona bem até ~10-12 pessoas, que é o
@@ -31,6 +48,7 @@ export function useVoiceRoom({ socket, channel, currentUser }) {
   const [error, setError] = useState(null);
 
   const pcsRef = useRef(new Map()); // socketId -> { pc, isPolite, makingOffer, ignoreOffer, remoteStream }
+  const iceServersRef = useRef(DEFAULT_ICE_SERVERS);
   const localAudioTrackRef = useRef(null);
   const localVideoTrackRef = useRef(null);
   const localStreamRef = useRef(new MediaStream());
@@ -53,8 +71,34 @@ export function useVoiceRoom({ socket, channel, currentUser }) {
     });
   }, []);
 
+  // Garante que todas as tracks locais atuais (áudio, e câmera/tela se houver)
+  // estejam de fato anexadas a essa conexão. Isso existe por causa de uma
+  // situação real que aconteceu: quando duas pessoas tentam negociar a conexão
+  // ao mesmo tempo (uma "corrida" bem comum quando alguém entra numa sala onde
+  // outra pessoa já está com câmera/tela ligada), o lado "educado" (polite) da
+  // negociação perfeita às vezes sofre um rollback implícito do navegador — e
+  // esse rollback pode descartar o "remetente" (sender) da track que tinha sido
+  // anexado com addTrack, sem re-anexar automaticamente depois. O resultado:
+  // a pessoa parecia conectada normalmente, mas o áudio/vídeo dela nunca saía
+  // pra quem acabou de entrar. Chamando isso depois de qualquer troca de
+  // descrição, recolocamos qualquer track que tenha ficado "órfã" — o que
+  // dispara uma nova rodada de negociação automaticamente se precisar.
+  function ensureLocalTracksAttached(pc) {
+    const senders = pc.getSenders();
+    for (const track of localStreamRef.current.getTracks()) {
+      const alreadyAttached = senders.some((s) => s.track === track);
+      if (!alreadyAttached) {
+        try {
+          pc.addTrack(track, localStreamRef.current);
+        } catch (err) {
+          console.error('Erro ao reanexar track local após negociação:', err);
+        }
+      }
+    }
+  }
+
   const createPeerConnection = useCallback((socketId, remoteUser, isPolite) => {
-    const pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
+    const pc = new RTCPeerConnection({ iceServers: iceServersRef.current });
     const remoteStream = new MediaStream();
     const entry = { pc, isPolite, makingOffer: false, ignoreOffer: false, remoteStream };
     pcsRef.current.set(socketId, entry);
@@ -88,11 +132,22 @@ export function useVoiceRoom({ socket, channel, currentUser }) {
       bumpPeers();
     };
 
+    pc.onsignalingstatechange = () => {
+      if (pc.signalingState === 'stable') ensureLocalTracksAttached(pc);
+    };
+
     pc.onconnectionstatechange = () => {
-      if (['failed', 'closed', 'disconnected'].includes(pc.connectionState)) {
-        // deixa o evento voice:peer-left do servidor cuidar da limpeza principal;
-        // aqui só evitamos travar em estado de erro.
+      if (pc.connectionState === 'failed') {
+        // Tenta recuperar a conexão sozinha (ex.: instabilidade momentânea de
+        // rede) em vez de deixar a chamada muda/preta pro resto da sessão.
+        try {
+          pc.restartIce();
+        } catch (err) {
+          console.error('Erro ao tentar restabelecer conexão de voz:', err);
+        }
       }
+      // 'closed'/'disconnected': deixa o evento voice:peer-left do servidor
+      // cuidar da limpeza principal; aqui só evitamos travar em estado de erro.
     };
 
     setPeers((prev) => ({
@@ -110,6 +165,7 @@ export function useVoiceRoom({ socket, channel, currentUser }) {
 
     async function join() {
       try {
+        iceServersRef.current = await getIceServers();
         const { micId } = getDevicePrefs();
         const audioStream = await getUserMediaWithFallback('audio', micId);
         if (cancelled) {
@@ -161,6 +217,10 @@ export function useVoiceRoom({ socket, channel, currentUser }) {
           if (entry.ignoreOffer) return;
 
           await pc.setRemoteDescription(data.description);
+          // Se essa descrição causou um rollback implícito do nosso lado (corrida
+          // de negociação), reanexa qualquer track local que tenha ficado sem
+          // remetente antes de responder — veja ensureLocalTracksAttached acima.
+          ensureLocalTracksAttached(pc);
           if (data.description.type === 'offer') {
             await pc.setLocalDescription();
             socket.emit('voice:signal', { to: from, data: { description: pc.localDescription } });

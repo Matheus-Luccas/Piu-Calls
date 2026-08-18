@@ -30,4 +30,6 @@ export const api = {
   createChannel: (serverId, name, type) =>
     request(`/api/channels/server/${serverId}`, { method: 'POST', body: JSON.stringify({ name, type }) }),
   getMessages: (channelId) => request(`/api/channels/${channelId}/messages`),
+
+  iceServers: () => request('/api/ice-servers'),
 };

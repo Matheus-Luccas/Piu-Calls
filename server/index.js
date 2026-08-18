@@ -67,6 +67,26 @@ app.use('/api/channels', channelRoutes);
 
 app.get('/api/health', (req, res) => res.json({ ok: true }));
 
+// Lista de servidores ICE (STUN/TURN) usada pelas chamadas de voz/vídeo do app
+// desktop. STUN sozinho (padrão) já basta em muitas redes, mas quando as duas
+// pessoas estão em redes bem restritivas (NAT simétrico, 4G, algumas redes
+// corporativas/de operadora) a conexão direta P2P pode nunca se estabelecer —
+// aí é preciso um servidor TURN, que "retransmite" a chamada. Configure as
+// variáveis de ambiente TURN_URL / TURN_USERNAME / TURN_CREDENTIAL no Render
+// (ou onde o servidor estiver hospedado) para ativar isso sem precisar mexer
+// no código do app; sem elas, o app continua funcionando só com STUN.
+app.get('/api/ice-servers', (req, res) => {
+  const iceServers = [{ urls: 'stun:stun.l.google.com:19302' }];
+  if (process.env.TURN_URL) {
+    iceServers.push({
+      urls: process.env.TURN_URL,
+      username: process.env.TURN_USERNAME,
+      credential: process.env.TURN_CREDENTIAL,
+    });
+  }
+  res.json({ iceServers });
+});
+
 // Página pública de download do app (instaladores Windows/Mac/Linux) — link
 // fixo que pode ser compartilhado com qualquer pessoa, sem precisar mandar
 // arquivo manualmente a cada nova versão. Os botões apontam pra Release mais
