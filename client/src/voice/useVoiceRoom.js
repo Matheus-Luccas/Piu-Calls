@@ -1,4 +1,18 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { getDevicePrefs } from '../config';
+
+// Tenta abrir o dispositivo escolhido nas configurações; se ele não existir mais
+// (foi desconectado, por exemplo), cai de volta pro padrão do sistema em vez de falhar.
+async function getUserMediaWithFallback(constraintKey, deviceId) {
+  if (deviceId) {
+    try {
+      return await navigator.mediaDevices.getUserMedia({ [constraintKey]: { deviceId: { exact: deviceId } } });
+    } catch {
+      // segue para o padrão do sistema
+    }
+  }
+  return navigator.mediaDevices.getUserMedia({ [constraintKey]: true });
+}
 
 // STUN público do Google — suficiente para testes na mesma rede / redes "abertas".
 // Para chamadas confiáveis entre redes diferentes (NAT simétrico, 4G etc.) em produção,
@@ -96,7 +110,8 @@ export function useVoiceRoom({ socket, channel, currentUser }) {
 
     async function join() {
       try {
-        const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const { micId } = getDevicePrefs();
+        const audioStream = await getUserMediaWithFallback('audio', micId);
         if (cancelled) {
           audioStream.getTracks().forEach((t) => t.stop());
           return;
@@ -246,7 +261,8 @@ export function useVoiceRoom({ socket, channel, currentUser }) {
       return;
     }
     try {
-      const camStream = await navigator.mediaDevices.getUserMedia({ video: true });
+      const { camId } = getDevicePrefs();
+      const camStream = await getUserMediaWithFallback('video', camId);
       const camTrack = camStream.getVideoTracks()[0];
       camTrack.onended = () => {
         replaceVideoTrack(null);

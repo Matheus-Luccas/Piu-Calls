@@ -1,8 +1,10 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useVoiceRoom } from '../voice/useVoiceRoom';
 import VideoTile from './VideoTile';
+import DeviceSettings from './DeviceSettings';
 
 export default function VoicePanel({ socket, channel, currentUser }) {
+  const [showDeviceSettings, setShowDeviceSettings] = useState(false);
   const {
     peers,
     localStream,
@@ -76,7 +78,12 @@ export default function VoicePanel({ socket, channel, currentUser }) {
         >
           🖥️
         </button>
+        <button className="ctrl-btn" onClick={() => setShowDeviceSettings(true)} title="Dispositivos de áudio e vídeo">
+          ⚙
+        </button>
       </div>
+
+      {showDeviceSettings && <DeviceSettings onClose={() => setShowDeviceSettings(false)} />}
     </div>
   );
 }

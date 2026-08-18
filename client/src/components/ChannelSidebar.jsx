@@ -1,8 +1,10 @@
 import { useState } from 'react';
+import DeviceSettings from './DeviceSettings';
 
 export default function ChannelSidebar({ server, channels, members, activeChannel, onSelectChannel, onCreateChannel, currentUser, onLogout, onChangeServer }) {
   const [creating, setCreating] = useState(null); // 'text' | 'voice' | null
   const [name, setName] = useState('');
+  const [showDeviceSettings, setShowDeviceSettings] = useState(false);
 
   const textChannels = channels.filter((c) => c.type === 'text');
   const voiceChannels = channels.filter((c) => c.type === 'voice');
@@ -79,15 +81,20 @@ export default function ChannelSidebar({ server, channels, members, activeChanne
           {currentUser.username[0]?.toUpperCase()}
         </div>
         <span>{currentUser.username}</span>
+        <button className="btn-secondary logout-btn" onClick={() => setShowDeviceSettings(true)} title="Dispositivos de áudio e vídeo">
+          ⚙
+        </button>
         {onChangeServer && (
           <button className="btn-secondary logout-btn" onClick={onChangeServer} title="Trocar servidor">
-            ⚙
+            🔗
           </button>
         )}
         <button className="btn-secondary logout-btn" onClick={onLogout}>
           Sair
         </button>
       </div>
+
+      {showDeviceSettings && <DeviceSettings onClose={() => setShowDeviceSettings(false)} />}
 
       {creating && (
         <div className="modal-overlay" onClick={() => setCreating(null)}>
