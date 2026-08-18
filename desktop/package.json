@@ -38,7 +38,8 @@
     "publish": {
       "provider": "github",
       "owner": "Matheus-Luccas",
-      "repo": "Piu-Calls"
+      "repo": "Piu-Calls",
+      "releaseType": "release"
     },
     "win": {
       "target": "nsis",
