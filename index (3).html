@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Squad — baixar o app</title>
+<link rel="icon" href="data:,">
+<style>
+  :root {
+    --bg-darkest: #1e1f22;
+    --bg-dark: #2b2d31;
+    --bg-mid: #313338;
+    --bg-light: #383a40;
+    --bg-lighter: #404249;
+    --text-normal: #dbdee1;
+    --text-muted: #949ba4;
+    --text-bright: #f2f3f5;
+    --brand: #5865f2;
+    --brand-hover: #4752c4;
+    --success: #23a55a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: radial-gradient(circle at top, #2b2d55, var(--bg-darkest) 60%);
+    color: var(--text-normal);
+    font-family: "gg sans", "Noto Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .card {
+    width: 100%;
+    max-width: 640px;
+    background: var(--bg-mid);
+    border: 1px solid #1a1a1e;
+    border-radius: 12px;
+    padding: 40px 36px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.45);
+  }
+  .logo {
+    width: 64px;
+    height: 64px;
+    border-radius: 16px;
+    background: var(--brand);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    font-weight: 700;
+    color: white;
+    margin: 0 auto 20px;
+  }
+  h1 {
+    text-align: center;
+    color: var(--text-bright);
+    margin: 0 0 6px;
+    font-size: 26px;
+  }
+  .subtitle {
+    text-align: center;
+    color: var(--text-muted);
+    margin: 0 0 32px;
+    font-size: 15px;
+    line-height: 1.5;
+  }
+  .downloads {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .dl-btn {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: var(--bg-light);
+    border: 1px solid var(--bg-lighter);
+    border-radius: 8px;
+    padding: 14px 18px;
+    text-decoration: none;
+    color: var(--text-bright);
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .dl-btn:hover {
+    background: var(--brand);
+    border-color: var(--brand);
+  }
+  .dl-icon {
+    font-size: 24px;
+    width: 32px;
+    text-align: center;
+  }
+  .dl-text { flex: 1; }
+  .dl-title { font-weight: 600; font-size: 15px; }
+  .dl-sub { font-size: 12.5px; color: var(--text-muted); }
+  .dl-btn:hover .dl-sub { color: rgba(255,255,255,0.85); }
+  .dl-arrow { color: var(--text-muted); font-size: 18px; }
+  .dl-btn:hover .dl-arrow { color: white; }
+
+  .hint {
+    margin-top: 28px;
+    padding: 14px 16px;
+    background: var(--bg-darkest);
+    border-radius: 8px;
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+  .hint b { color: var(--text-normal); }
+  .hint code {
+    background: var(--bg-light);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 12.5px;
+  }
+  .footer {
+    text-align: center;
+    margin-top: 24px;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .footer a { color: var(--text-muted); }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">S</div>
+    <h1>Squad</h1>
+    <p class="subtitle">Chamada de voz/vídeo em grupo, compartilhamento de tela e chat por canais.<br>Escolha seu sistema abaixo pra baixar o instalador mais recente.</p>
+
+    <div class="downloads">
+      <a class="dl-btn" href="https://github.com/Matheus-Luccas/Piu-Calls/releases/latest/download/Squad-Setup-Windows.exe">
+        <span class="dl-icon">🪟</span>
+        <span class="dl-text">
+          <div class="dl-title">Baixar para Windows</div>
+          <div class="dl-sub">Squad-Setup-Windows.exe</div>
+        </span>
+        <span class="dl-arrow">↓</span>
+      </a>
+
+      <a class="dl-btn" href="https://github.com/Matheus-Luccas/Piu-Calls/releases/latest/download/Squad-Mac.dmg">
+        <span class="dl-icon"></span>
+        <span class="dl-text">
+          <div class="dl-title">Baixar para Mac</div>
+          <div class="dl-sub">Squad-Mac.dmg</div>
+        </span>
+        <span class="dl-arrow">↓</span>
+      </a>
+
+      <a class="dl-btn" href="https://github.com/Matheus-Luccas/Piu-Calls/releases/latest/download/Squad-Linux.AppImage">
+        <span class="dl-icon">🐧</span>
+        <span class="dl-text">
+          <div class="dl-title">Baixar para Linux</div>
+          <div class="dl-sub">Squad-Linux.AppImage</div>
+        </span>
+        <span class="dl-arrow">↓</span>
+      </a>
+    </div>
+
+    <div class="hint">
+      <b>Windows</b> pode avisar "Windows protegeu seu PC" — clique em <b>Mais informações</b> → <b>Executar assim mesmo</b> (é normal para apps sem certificado pago).<br>
+      <b>Mac</b>: se aparecer aviso de app não identificado, clique com o botão direito no app → <b>Abrir</b>.<br>
+      <b>Linux</b>: depois de baixar, rode <code>chmod +x Squad-Linux.AppImage</code> e dê dois cliques nele.
+    </div>
+
+    <div class="footer">
+      Esses links sempre apontam para a versão mais recente publicada.
+    </div>
+  </div>
+</body>
+</html>

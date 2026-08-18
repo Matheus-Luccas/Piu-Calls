@@ -25,21 +25,34 @@ com múltiplos servidores e canais, parecido com o Discord. Tem duas partes:
 
 1. Uma pessoa do grupo hospeda o servidor seguindo o **[DEPLOY.md](./DEPLOY.md)**
    e fica com um link (ex.: `https://squad-servidor.onrender.com`).
-2. Essa pessoa gera (ou baixa, veja abaixo) os instaladores do app desktop e
-   compartilha com o resto do grupo — junto com o link do servidor.
+2. Essa pessoa manda pro resto do grupo apenas o **link do servidor com `/download`
+   no final** (ex.: `https://squad-servidor.onrender.com/download`) — é uma
+   página com botões de baixar para Windows/Mac/Linux, sempre com a versão mais
+   recente. Não precisa mandar o arquivo do instalador manualmente pra cada
+   pessoa, nem toda vez que sair uma atualização.
 3. Cada pessoa instala o app, na primeira abertura cola o link do servidor,
    e cria sua conta.
 
 ## Como gerar os instaladores do app desktop (Windows .exe / Mac .dmg / Linux)
 
-A forma mais simples é usar o GitHub Actions (gratuito, não precisa de Windows
-nem Mac na sua casa):
+Isso já acontece automaticamente: toda vez que o workflow do GitHub Actions
+roda com sucesso, ele publica os três instaladores numa **Release pública**
+chamada `latest` no seu repositório, e a página `/download` do servidor (veja
+acima) sempre puxa os arquivos dessa release — então você só precisa rodar o
+workflow uma vez por atualização, e ninguém precisa baixar/reenviar nada à mão.
+
+Pra gerar (ou atualizar) os instaladores:
 
 1. Suba esta pasta para um repositório no GitHub.
 2. Na aba **Actions** do repositório, escolha o workflow **"Build desktop app
    (Windows / Mac / Linux)"** e clique em **Run workflow**.
-3. Espere terminar (uns 5-10 minutos) e baixe os arquivos na seção **Artifacts**
-   da execução: `squad-windows` (.exe), `squad-mac` (.dmg) e `squad-linux` (.AppImage).
+3. Espere terminar (uns 5-10 minutos). Pronto — a Release `latest` (aba
+   **Releases** do repositório) e a página `/download` do servidor já mostram
+   os instaladores novos, sem mais nenhum passo manual.
+
+(Se preferir, ainda dá pra baixar os arquivos direto da execução do workflow,
+na seção **Artifacts** — mas isso exige estar logado no GitHub, então não é
+uma boa forma de compartilhar com amigos que não têm conta lá.)
 
 Detalhes completos em [`.github/workflows/build-desktop.yml`](./.github/workflows/build-desktop.yml)
 (o próprio arquivo explica o passo a passo em comentários).
