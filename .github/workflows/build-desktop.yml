@@ -6,10 +6,16 @@ name: Build desktop app (Windows / Mac / Linux)
 # 3. Clique em "Build desktop app (Windows / Mac / Linux)" na lista à esquerda.
 # 4. Clique no botão "Run workflow" (canto direito) e depois em "Run workflow" de novo.
 # 5. Espere uns minutos até todos os "jobs" ficarem verdes (✔).
-# 6. Pronto! Os instaladores são publicados automaticamente numa "Release" pública
-#    chamada "latest" (aba "Releases" do repositório), e a página de download
-#    (servida pelo próprio backend, em /download) sempre aponta pros arquivos mais
-#    recentes — não precisa baixar e reenviar nada manualmente pros seus amigos.
+# 6. Pronto! Os instaladores são publicados automaticamente numa Release pública
+#    no GitHub (aba "Releases"), e:
+#     - a página de download (servida pelo próprio backend, em /download)
+#       sempre aponta pros arquivos mais recentes;
+#     - quem já tem o app instalado recebe a atualização sozinho (o app confere
+#       automaticamente ao abrir, e também tem um botão "Checar atualizações"
+#       no canto da tela) — sem precisar desinstalar/instalar de novo.
+#    A cada execução deste workflow, a versão do app é definida como
+#    "1.0.<número da execução>", que sempre cresce — é assim que o app sabe
+#    que existe algo mais novo pra baixar.
 
 permissions:
   contents: write
@@ -54,39 +60,20 @@ jobs:
         working-directory: desktop
         run: npm install
 
-      - name: Gerar instalador
+      - name: Definir versão desta build (sempre crescente)
         working-directory: desktop
-        run: npm run ${{ matrix.script }}
+        shell: bash
+        run: npm version "1.0.${{ github.run_number }}" --no-git-tag-version --allow-same-version
 
-      - name: Publicar instalador como artefato
+      - name: Gerar instalador e publicar na Release do GitHub
+        working-directory: desktop
+        run: npm run ${{ matrix.script }} -- --publish always
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Também deixar disponível como artefato da execução (opcional)
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.name }}
           path: ${{ matrix.artifact_glob }}
           if-no-files-found: error
-
-  release:
-    name: Publicar release pública (download)
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Baixar todos os instaladores gerados
-        uses: actions/download-artifact@v4
-        with:
-          pattern: squad-*
-          path: instaladores
-          merge-multiple: true
-
-      - name: Publicar/atualizar a Release "latest"
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: latest
-          name: Squad — última versão
-          body: |
-            Instaladores gerados automaticamente pelo GitHub Actions a partir do
-            código mais recente. Baixe pelo app ou pela página `/download` do
-            servidor — os links de lá sempre apontam para esta release.
-          make_latest: 'true'
-          files: instaladores/*
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
